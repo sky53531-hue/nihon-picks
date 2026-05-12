@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="日本必買">
+<title>日本必買 NIHON PICKS</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Noto Sans TC',sans-serif; background:#FAFAF8; min-height:100vh; }
+  .app { max-width:480px; margin:0 auto; }
+
+  /* Header */
+  .header { background:#fff; padding:20px 20px 0; border-bottom:1px solid #EEECEA; position:sticky; top:0; z-index:100; }
+  .header-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .logo-main { font-size:22px; font-family:'Noto Serif JP',serif; font-weight:700; color:#1a1a1a; letter-spacing:2px; }
+  .logo-sub { font-size:11px; color:#C9373C; font-weight:700; letter-spacing:2px; border-bottom:2px solid #C9373C; padding-bottom:1px; margin-left:8px; }
+  .logo-desc { font-size:11px; color:#BBB; margin-top:2px; letter-spacing:1px; }
+  .btn-add { background:#1a1a1a; color:#fff; border:none; border-radius:22px; padding:10px 18px; font-size:13px; font-weight:700; cursor:pointer; letter-spacing:1px; font-family:'Noto Sans TC',sans-serif; }
+
+  /* Search */
+  .search-wrap { position:relative; margin-bottom:14px; }
+  .search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:13px; color:#BBB; }
+  .search-input { width:100%; background:#F4F4F0; border:none; border-radius:14px; padding:11px 14px 11px 38px; font-size:13px; outline:none; color:#333; font-family:'Noto Sans TC',sans-serif; }
+
+  /* Category tabs */
+  .tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:14px; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab-btn { white-space:nowrap; padding:7px 16px; border-radius:20px; border:none; cursor:pointer; font-size:12px; font-weight:600; font-family:'Noto Sans TC',sans-serif; transition:all 0.2s; background:transparent; color:#888; }
+  .tab-btn.active { background:#1a1a1a; color:#fff; }
+
+  /* Region filter */
+  .regions { padding:12px 16px; display:flex; gap:8px; overflow-x:auto; background:#fff; border-bottom:1px solid #EEECEA; scrollbar-width:none; }
+  .regions::-webkit-scrollbar { display:none; }
+  .region-btn { white-space:nowrap; padding:5px 14px; border-radius:20px; border:1.5px solid #E8E7E3; cursor:pointer; font-size:11px; font-weight:600; background:#fff; color:#AAA; transition:all 0.2s; font-family:'Noto Sans TC',sans-serif; }
+  .region-btn.active { border-color:#C9373C; background:#FFF5F5; color:#C9373C; }
+
+  /* Count */
+  .count { padding:10px 20px; font-size:11px; color:#BBB; letter-spacing:1px; }
+  .count strong { color:#1a1a1a; }
+
+  /* Grid */
+  .grid { padding:0 16px 32px; display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .card { background:#fff; border-radius:18px; overflow:hidden; cursor:pointer; box-shadow:0 1px 8px rgba(0,0,0,0.06); border:1px solid #EEECEA; transition:transform 0.15s,box-shadow 0.15s; }
+  .card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.1); }
+  .card-img { height:110px; background:#F7F6F2; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+  .card-img img { width:100%; height:100%; object-fit:cover; }
+  .card-emoji { font-size:48px; }
+  .card-tag { position:absolute; top:8px; left:8px; font-size:9px; font-weight:800; padding:3px 8px; border-radius:20px; letter-spacing:1px; }
+  .card-body { padding:10px 12px 12px; }
+  .card-name { font-size:12px; font-weight:700; color:#1a1a1a; margin-bottom:3px; line-height:1.4; font-family:'Noto Serif JP',serif; }
+  .card-price { font-size:10px; font-weight:700; margin-bottom:5px; }
+  .card-meta { font-size:10px; color:#BBB; margin-bottom:8px; }
+  .card-footer { display:flex; justify-content:space-between; align-items:center; }
+  .card-cat { font-size:10px; color:#CCC; background:#F7F6F2; padding:3px 8px; border-radius:10px; }
+  .like-btn { background:none; border:none; cursor:pointer; font-size:11px; color:#CCC; font-weight:700; padding:0; font-family:'Noto Sans TC',sans-serif; }
+  .like-btn.liked { color:#C9373C; }
+
+  /* States */
+  .state-box { padding:60px 20px; text-align:center; }
+  .state-icon { font-size:40px; margin-bottom:12px; }
+  .state-text { font-size:14px; color:#BBB; margin-bottom:8px; }
+  .state-sub { font-size:12px; color:#CCC; }
+  .retry-btn { background:#1a1a1a; color:#fff; border:none; border-radius:12px; padding:10px 20px; font-size:13px; cursor:pointer; margin-top:12px; font-family:'Noto Sans TC',sans-serif; }
+
+  /* Modal overlay */
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:300; display:flex; align-items:flex-end; }
+  .overlay-center { align-items:center; justify-content:center; padding:20px; }
+  .sheet { background:#fff; width:100%; border-radius:24px 24px 0 0; max-height:88vh; overflow-y:auto; padding-bottom:32px; }
+  .sheet-handle-wrap { padding:12px 0 0; display:flex; justify-content:center; }
+  .sheet-handle { width:36px; height:4px; background:#DDD; border-radius:2px; }
+  .sheet-body { padding:0 20px; }
+
+  /* Detail modal */
+  .detail-hero { margin:16px 20px; border-radius:20px; overflow:hidden; background:#F7F6F2; height:200px; display:flex; align-items:center; justify-content:center; position:relative; }
+  .detail-hero img { width:100%; height:100%; object-fit:cover; }
+  .detail-hero-emoji { font-size:72px; }
+  .detail-tag { position:absolute; top:12px; left:12px; font-size:11px; font-weight:700; padding:4px 12px; border-radius:20px; letter-spacing:1px; }
+  .detail-title-row { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+  .detail-title { font-size:20px; font-weight:700; color:#1a1a1a; flex:1; font-family:'Noto Serif JP',serif; line-height:1.4; }
+  .detail-price { font-size:15px; font-weight:700; margin-left:12px; white-space:nowrap; }
+  .detail-chips { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .chip { font-size:12px; color:#888; background:#F4F4F0; padding:4px 10px; border-radius:20px; }
+  .divider { height:1px; background:#F0EFEB; margin-bottom:16px; }
+  .section-label { font-size:11px; color:#AAA; font-weight:600; letter-spacing:2px; margin-bottom:8px; }
+  .section-text { font-size:14px; color:#333; line-height:1.8; }
+  .store-box { background:#F7F6F2; border-radius:14px; padding:14px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; }
+  .store-name { font-size:14px; color:#333; font-weight:600; }
+  .store-addr { font-size:11px; color:#888; margin-top:2px; }
+  .map-btn { background:#1a1a1a; color:#fff; border:none; border-radius:10px; padding:10px 14px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Noto Sans TC',sans-serif; }
+  .action-row { display:flex; gap:10px; }
+  .action-btn { flex:1; padding:14px; border-radius:14px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Noto Sans TC',sans-serif; transition:all 0.2s; }
+  .action-like { border:1.5px solid #E8E8E4; background:#fff; color:#999; }
+  .action-like.liked { border-color:#C9373C; background:#FFF5F5; color:#C9373C; }
+  .action-share { border:none; background:#1a1a1a; color:#fff; }
+
+  /* Add modal */
+  .add-title { font-size:18px; font-weight:800; color:#1a1a1a; font-family:'Noto Serif JP',serif; margin-bottom:4px; }
+  .add-sub { font-size:12px; color:#AAA; margin-bottom:20px; }
+  .photo-area { background:#F7F6F2; border-radius:16px; height:140px; display:flex; align-items:center; justify-content:center; margin-bottom:16px; cursor:pointer; border:2px dashed #E0DFDB; overflow:hidden; position:relative; }
+  .photo-area img { width:100%; height:100%; object-fit:cover; }
+  .photo-placeholder { text-align:center; }
+  .photo-icon { font-size:32px; margin-bottom:8px; }
+  .photo-label { font-size:13px; color:#999; font-weight:600; }
+  .photo-hint { font-size:11px; color:#BBB; margin-top:4px; }
+  .photo-change { position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.5); color:#fff; border-radius:20px; padding:4px 10px; font-size:11px; font-weight:600; }
+  .emoji-picker { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+  .emoji-btn { width:40px; height:40px; border-radius:10px; border:2px solid #E8E7E3; background:#F7F6F2; font-size:20px; cursor:pointer; }
+  .emoji-btn.active { border-color:#C9373C; background:#FFF5F5; }
+  .field { margin-bottom:14px; }
+  .field-label { font-size:11px; font-weight:700; color:#888; letter-spacing:1px; margin-bottom:6px; }
+  .field input, .field textarea, .field select { width:100%; border:1.5px solid #EEECEA; border-radius:12px; padding:11px 14px; font-size:14px; outline:none; background:#FAFAF8; font-family:'Noto Sans TC',sans-serif; }
+  .field textarea { resize:none; line-height:1.7; }
+  .field select { appearance:none; }
+  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+  .tag-pills { display:flex; gap:8px; flex-wrap:wrap; }
+  .tag-pill { padding:7px 16px; border-radius:20px; border:none; cursor:pointer; font-size:12px; font-weight:700; font-family:'Noto Sans TC',sans-serif; transition:all 0.2s; }
+  .form-actions { display:flex; gap:10px; margin-top:8px; }
+  .form-cancel { flex:1; padding:15px; border-radius:14px; border:1.5px solid #E0DFDB; background:#fff; font-size:14px; font-weight:600; cursor:pointer; color:#888; font-family:'Noto Sans TC',sans-serif; }
+  .form-submit { flex:2; padding:15px; border-radius:14px; border:none; background:#C9373C; color:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:'Noto Sans TC',sans-serif; }
+  .form-submit:disabled { background:#CCC; cursor:not-allowed; }
+
+  /* Share modal */
+  .share-card { background:#fff; border-radius:20px; padding:24px; width:100%; max-width:380px; }
+  .share-title { font-size:16px; font-weight:700; margin-bottom:16px; color:#1a1a1a; font-family:'Noto Serif JP',serif; }
+  .share-text { background:#F7F6F2; border-radius:12px; padding:16px; font-size:12px; line-height:1.8; color:#444; white-space:pre-wrap; margin-bottom:16px; }
+  .share-actions { display:flex; gap:10px; }
+  .share-copy { flex:1; padding:12px 0; border-radius:12px; border:1.5px solid #C9373C; background:#fff; color:#C9373C; font-size:13px; font-weight:700; cursor:pointer; font-family:'Noto Sans TC',sans-serif; transition:all 0.2s; }
+  .share-copy.copied { background:#C9373C; color:#fff; }
+  .share-close { flex:1; padding:12px 0; border-radius:12px; border:none; background:#1a1a1a; color:#fff; font-size:13px; font-weight:700; cursor:pointer; font-family:'Noto Sans TC',sans-serif; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div>
+          <span class="logo-main">日本必買</span>
+          <span class="logo-sub">NIHON PICKS</span>
+        </div>
+        <div class="logo-desc">旅人精選 · 真實推薦</div>
+      </div>
+      <button class="btn-add" onclick="openAdd()">＋ 新增</button>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchInput" placeholder="搜尋商品、品牌、店名..." oninput="renderGrid()">
+    </div>
+    <div class="tabs" id="catTabs"></div>
+  </div>
+
+  <!-- Regions -->
+  <div class="regions" id="regionTabs"></div>
+
+  <!-- Count -->
+  <div class="count" id="countText"></div>
+
+  <!-- Grid -->
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- Detail Modal -->
+<div class="overlay" id="detailModal" style="display:none" onclick="closeDetail(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+    <div class="detail-hero" id="detailHero"></div>
+    <div class="sheet-body">
+      <div class="detail-title-row">
+        <div class="detail-title" id="detailName"></div>
+        <div class="detail-price" id="detailPrice"></div>
+      </div>
+      <div class="detail-chips" id="detailChips"></div>
+      <div class="divider"></div>
+      <div style="margin-bottom:16px">
+        <div class="section-label">推薦說明</div>
+        <div class="section-text" id="detailDesc"></div>
+      </div>
+      <div class="store-box">
+        <div>
+          <div class="section-label">購買地點</div>
+          <div class="store-name" id="detailStore"></div>
+          <div class="store-addr" id="detailAddr"></div>
+        </div>
+        <button class="map-btn" id="detailMapBtn">📍 地圖</button>
+      </div>
+      <div class="action-row">
+        <button class="action-btn action-like" id="detailLikeBtn" onclick="toggleLikeDetail()"></button>
+        <button class="action-btn action-share" onclick="openShare()">↗ 分享</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Modal -->
+<div class="overlay" id="addModal" style="display:none" onclick="closeAdd(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+    <div class="sheet-body" style="padding-top:16px">
+      <div class="add-title">新增推薦商品</div>
+      <div class="add-sub">分享你在日本發現的好物 🇯🇵</div>
+
+      <div class="photo-area" id="photoArea" onclick="document.getElementById('fileInput').click()">
+        <div class="photo-placeholder" id="photoPlaceholder">
+          <div class="photo-icon">📷</div>
+          <div class="photo-label">點擊上傳商品照片</div>
+          <div class="photo-hint">建議正方形、清晰照</div>
+        </div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(event)">
+
+      <div id="emojiSection">
+        <div class="field-label">選擇圖示（沒有照片時顯示）</div>
+        <div class="emoji-picker" id="emojiPicker"></div>
+      </div>
+
+      <div class="field"><div class="field-label">商品名稱 *</div><input id="f_name" placeholder="例：FANCL 卸妝油"></div>
+      <div class="field"><div class="field-label">購買店名 *</div><input id="f_store" placeholder="例：松本清、百貨公司"></div>
+      <div class="field"><div class="field-label">店家地址（選填）</div><input id="f_addr" placeholder="例：東京都新宿区"></div>
+      <div class="field"><div class="field-label">Google Maps 關鍵字（選填）</div><input id="f_map" placeholder="例：マツキヨ 新宿（空白則用店名）"></div>
+      <div class="field"><div class="field-label">價格</div><input id="f_price" placeholder="例：¥1,800"></div>
+
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label">分類</div>
+          <select id="f_category">
+            <option>藥妝保養</option><option>食品甜點</option><option>雜貨小物</option><option>美妝彩妝</option><option>藥局限定</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">地區</div>
+          <select id="f_region">
+            <option>東京</option><option>大阪</option><option>京都</option><option>福岡</option><option>北海道</option><option>沖繩</option><option>全日本</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">標籤</div>
+        <div class="tag-pills" id="tagPills"></div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">推薦說明</div>
+        <textarea id="f_desc" rows="4" placeholder="分享你的使用心得、在哪裡找到的、為什麼推薦..."></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button class="form-cancel" onclick="closeAdd()">取消</button>
+        <button class="form-submit" id="submitBtn" onclick="submitForm()">發布推薦 ✨</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="overlay overlay-center" id="shareModal" style="display:none" onclick="closeShare(event)">
+  <div class="share-card" onclick="event.stopPropagation()">
+    <div class="share-title">分享此商品</div>
+    <div class="share-text" id="shareText"></div>
+    <div class="share-actions">
+      <button class="share-copy" id="copyBtn" onclick="copyShare()">複製文字</button>
+      <button class="share-close" onclick="closeShare()">關閉</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Supabase 設定 ──────────────────────────
+const SUPABASE_URL = "https://tkxcucxbuuairtqalfzd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_v82ufjy8-Ru8O7WdZCSzsQ_JnPvNDA-";
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
+    ...options,
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      "Prefer": options.prefer || "",
+      ...(options.headers || {}),
+    },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+async function uploadImage(file) {
+  const ext = file.name.split(".").pop();
+  const fileName = `${Date.now()}.${ext}`;
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/item-images/${fileName}`, {
+    method: "POST",
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": file.type,
+    },
+    body: file,
+  });
+  if (!res.ok) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/item-images/${fileName}`;
+}
+
+// ── 常數 ──────────────────────────────────
+const CATEGORIES = ["すべて","藥妝保養","食品甜點","雜貨小物","美妝彩妝","藥局限定"];
+const REGIONS = ["全部","東京","大阪","京都","福岡","北海道","沖繩"];
+const EMOJIS = ["🧴","🍮","🍪","✨","☀️","🤲","🍜","🍡","👜","💊","🧸","🫧"];
+const TAGS = ["必買","熱門","頂級","伴手禮","限定"];
+const TAG_META = {
+  必買:{bg:"#C9373C",text:"#fff"},
+  熱門:{bg:"#E07B39",text:"#fff"},
+  頂級:{bg:"#4A6741",text:"#fff"},
+  伴手禮:{bg:"#5B7FA6",text:"#fff"},
+  限定:{bg:"#8B5E8B",text:"#fff"},
+};
+
+// ── State ─────────────────────────────────
+let items = [];
+let liked = {};
+let activeCategory = "すべて";
+let activeRegion = "全部";
+let selectedItem = null;
+let selectedEmoji = "🧴";
+let selectedTag = "必買";
+let imgFile = null;
+let imgPreview = null;
+
+// ── Init ──────────────────────────────────
+async function init() {
+  renderCatTabs();
+  renderRegionTabs();
+  renderEmojiPicker();
+  renderTagPills();
+  await loadItems();
+}
+
+async function loadItems() {
+  showLoading();
+  try {
+    const data = await sbFetch("/items?order=created_at.desc&select=*");
+    items = data || [];
+    renderGrid();
+  } catch(e) {
+    showError();
+  }
+}
+
+// ── Render ────────────────────────────────
+function renderCatTabs() {
+  document.getElementById("catTabs").innerHTML = CATEGORIES.map(c =>
+    `<button class="tab-btn ${c===activeCategory?'active':''}" onclick="setCategory('${c}')">${c}</button>`
+  ).join("");
+}
+
+function renderRegionTabs() {
+  document.getElementById("regionTabs").innerHTML = REGIONS.map(r =>
+    `<button class="region-btn ${r===activeRegion?'active':''}" onclick="setRegion('${r}')">${r}</button>`
+  ).join("");
+}
+
+function renderEmojiPicker() {
+  document.getElementById("emojiPicker").innerHTML = EMOJIS.map(e =>
+    `<button class="emoji-btn ${e===selectedEmoji?'active':''}" onclick="selectEmoji('${e}')">${e}</button>`
+  ).join("");
+}
+
+function renderTagPills() {
+  document.getElementById("tagPills").innerHTML = TAGS.map(t => {
+    const m = TAG_META[t];
+    const isActive = t === selectedTag;
+    return `<button class="tag-pill" style="background:${isActive?m.bg:'#F4F4F0'};color:${isActive?m.text:'#888'}" onclick="selectTag('${t}')">${t}</button>`;
+  }).join("");
+}
+
+function getFiltered() {
+  const search = document.getElementById("searchInput").value.trim();
+  return items.filter(item => {
+    const catOk = activeCategory === "すべて" || item.category === activeCategory;
+    const regOk = activeRegion === "全部" || item.region === activeRegion || item.region === "全日本";
+    const searchOk = !search || (item.name||"").includes(search) || (item.description||"").includes(search) || (item.store||"").includes(search);
+    return catOk && regOk && searchOk;
+  });
+}
+
+function renderGrid() {
+  const filtered = getFiltered();
+  const count = document.getElementById("countText");
+  const grid = document.getElementById("grid");
+  count.innerHTML = `找到 <strong>${filtered.length}</strong> 件商品`;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = "";
+    count.insertAdjacentHTML("afterend", `
+      <div class="state-box">
+        <div class="state-icon">🔍</div>
+        <div class="state-text">還沒有符合條件的商品</div>
+        <div class="state-sub">成為第一個新增推薦的人！</div>
+      </div>`);
+    return;
+  }
+
+  document.querySelectorAll(".state-box").forEach(e => e.remove());
+
+  grid.innerHTML = filtered.map(item => {
+    const tm = TAG_META[item.tag] || {bg:"#888",text:"#fff"};
+    const accent = tm.bg;
+    const isLiked = !!liked[item.id];
+    return `
+    <div class="card" onclick="openDetail('${item.id}')">
+      <div class="card-img">
+        ${item.img_url
+          ? `<img src="${item.img_url}" alt="${item.name}">`
+          : `<span class="card-emoji">${item.emoji||"🛍️"}</span>`}
+        <span class="card-tag" style="background:${tm.bg};color:${tm.text}">${item.tag}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-name">${item.name}</div>
+        <div class="card-price" style="color:${accent}">${item.price||""}</div>
+        <div class="card-meta">📍${item.region||""} · ${(item.store||"").length>8?(item.store||"").slice(0,8)+"…":(item.store||"")}</div>
+        <div class="card-footer">
+          <span class="card-cat">${item.category||""}</span>
+          <button class="like-btn ${isLiked?'liked':''}" onclick="event.stopPropagation();toggleLike('${item.id}')">
+            ${isLiked?"❤️":"🤍"} ${(item.likes||0)+(isLiked?1:0)}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function showLoading() {
+  document.getElementById("grid").innerHTML = "";
+  document.getElementById("countText").innerHTML = "";
+  document.querySelectorAll(".state-box").forEach(e => e.remove());
+  document.getElementById("countText").insertAdjacentHTML("afterend", `
+    <div class="state-box">
+      <div class="state-icon">🇯🇵</div>
+      <div class="state-text">載入中...</div>
+    </div>`);
+}
+
+function showError() {
+  document.querySelectorAll(".state-box").forEach(e => e.remove());
+  document.getElementById("countText").insertAdjacentHTML("afterend", `
+    <div class="state-box">
+      <div class="state-text" style="color:#C9373C">載入失敗，請稍後再試</div>
+      <button class="retry-btn" onclick="loadItems()">重新載入</button>
+    </div>`);
+}
+
+// ── Actions ───────────────────────────────
+function setCategory(cat) {
+  activeCategory = cat;
+  renderCatTabs();
+  renderGrid();
+}
+
+function setRegion(reg) {
+  activeRegion = reg;
+  renderRegionTabs();
+  renderGrid();
+}
+
+function selectEmoji(e) {
+  selectedEmoji = e;
+  renderEmojiPicker();
+}
+
+function selectTag(t) {
+  selectedTag = t;
+  renderTagPills();
+}
+
+async function toggleLike(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  const isLiked = !!liked[id];
+  liked[id] = !isLiked;
+  const newLikes = (item.likes||0) + (isLiked ? -1 : 1);
+  item.likes = newLikes;
+  renderGrid();
+  try {
+    await sbFetch(`/items?id=eq.${id}`, { method:"PATCH", body: JSON.stringify({ likes: newLikes }) });
+  } catch(e) {
+    liked[id] = isLiked;
+    item.likes = (item.likes||0) + (isLiked ? 1 : -1);
+    renderGrid();
+  }
+}
+
+// ── Detail Modal ──────────────────────────
+function openDetail(id) {
+  selectedItem = items.find(i => i.id === id);
+  if (!selectedItem) return;
+  const item = selectedItem;
+  const tm = TAG_META[item.tag] || {bg:"#888",text:"#fff"};
+  const isLiked = !!liked[item.id];
+
+  document.getElementById("detailHero").innerHTML = item.img_url
+    ? `<img src="${item.img_url}" alt="${item.name}"><span class="detail-tag" style="background:${tm.bg};color:${tm.text}">${item.tag}</span>`
+    : `<span class="detail-hero-emoji">${item.emoji||"🛍️"}</span><span class="detail-tag" style="background:${tm.bg};color:${tm.text}">${item.tag}</span>`;
+
+  document.getElementById("detailName").textContent = item.name;
+  document.getElementById("detailPrice").style.color = tm.bg;
+  document.getElementById("detailPrice").textContent = item.price||"";
+  document.getElementById("detailChips").innerHTML =
+    `<span class="chip">📍 ${item.region||""}</span><span class="chip">${item.category||""}</span>`;
+  document.getElementById("detailDesc").textContent = item.description||"";
+  document.getElementById("detailStore").textContent = item.store||"";
+  document.getElementById("detailAddr").textContent = item.store_address||"";
+
+  const q = item.map_query || item.store || "";
+  document.getElementById("detailMapBtn").onclick = () => window.open(`https://www.google.com/maps/search/${encodeURIComponent(q)}`, "_blank");
+
+  updateDetailLikeBtn();
+  document.getElementById("detailModal").style.display = "flex";
+}
+
+function updateDetailLikeBtn() {
+  if (!selectedItem) return;
+  const isLiked = !!liked[selectedItem.id];
+  const btn = document.getElementById("detailLikeBtn");
+  btn.className = `action-btn action-like ${isLiked?"liked":""}`;
+  btn.textContent = `${isLiked?"❤️ 已收藏":"🤍 收藏"} ${(selectedItem.likes||0)+(isLiked?1:0)}`;
+}
+
+function toggleLikeDetail() {
+  if (!selectedItem) return;
+  toggleLike(selectedItem.id).then(() => updateDetailLikeBtn());
+}
+
+function closeDetail(e) {
+  if (!e || e.target === document.getElementById("detailModal")) {
+    document.getElementById("detailModal").style.display = "none";
+  }
+}
+
+// ── Share Modal ───────────────────────────
+function openShare() {
+  if (!selectedItem) return;
+  const item = selectedItem;
+  document.getElementById("shareText").textContent =
+    `🇯🇵 日本必買推薦\n\n【${item.name}】\n📍 ${item.store||""}｜${item.region||""}\n💴 ${item.price||""}\n\n${item.description||""}\n\n#日本必買 #${item.region||""}必買`;
+  document.getElementById("shareModal").style.display = "flex";
+}
+
+function closeShare(e) {
+  if (!e || e.target === document.getElementById("shareModal")) {
+    document.getElementById("shareModal").style.display = "none";
+  }
+}
+
+function copyShare() {
+  const text = document.getElementById("shareText").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById("copyBtn");
+    btn.textContent = "✓ 已複製";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = "複製文字"; btn.classList.remove("copied"); }, 2000);
+  });
+}
+
+// ── Add Modal ─────────────────────────────
+function openAdd() {
+  imgFile = null;
+  imgPreview = null;
+  resetPhotoArea();
+  document.getElementById("f_name").value = "";
+  document.getElementById("f_store").value = "";
+  document.getElementById("f_addr").value = "";
+  document.getElementById("f_map").value = "";
+  document.getElementById("f_price").value = "";
+  document.getElementById("f_desc").value = "";
+  document.getElementById("addModal").style.display = "flex";
+}
+
+function closeAdd(e) {
+  if (!e || e.target === document.getElementById("addModal")) {
+    document.getElementById("addModal").style.display = "none";
+  }
+}
+
+function resetPhotoArea() {
+  const area = document.getElementById("photoArea");
+  area.innerHTML = `
+    <div class="photo-placeholder" id="photoPlaceholder">
+      <div class="photo-icon">📷</div>
+      <div class="photo-label">點擊上傳商品照片</div>
+      <div class="photo-hint">建議正方形、清晰照</div>
+    </div>`;
+  document.getElementById("emojiSection").style.display = "block";
+}
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  imgFile = file;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    imgPreview = ev.target.result;
+    const area = document.getElementById("photoArea");
+    area.innerHTML = `<img src="${imgPreview}" alt="preview"><span class="photo-change">更換</span>`;
+    document.getElementById("emojiSection").style.display = "none";
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitForm() {
+  const name = document.getElementById("f_name").value.trim();
+  const store = document.getElementById("f_store").value.trim();
+  if (!name || !store) { alert("請填寫商品名稱和購買地點"); return; }
+
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "發布中...";
+
+  try {
+    let img_url = null;
+    if (imgFile) img_url = await uploadImage(imgFile);
+
+    await sbFetch("/items", {
+      method: "POST",
+      prefer: "return=representation",
+      body: JSON.stringify({
+        name,
+        store,
+        store_address: document.getElementById("f_addr").value.trim(),
+        map_query: document.getElementById("f_map").value.trim(),
+        price: document.getElementById("f_price").value.trim(),
+        description: document.getElementById("f_desc").value.trim(),
+        category: document.getElementById("f_category").value,
+        region: document.getElementById("f_region").value,
+        tag: selectedTag,
+        emoji: selectedEmoji,
+        img_url,
+        likes: 0,
+      }),
+    });
+
+    document.getElementById("addModal").style.display = "none";
+    await loadItems();
+  } catch(e) {
+    alert("發布失敗：" + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "發布推薦 ✨";
+  }
+}
+
+init();
+</script>
+</body>
+</html>
