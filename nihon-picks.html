@@ -10,7 +10,7 @@
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Noto Sans TC',sans-serif; background:#FAFAF8; min-height:100vh; }
-  .app { max-width:480px; margin:0 auto; }
+  .app { max-width:1100px; margin:0 auto; }
 
   /* Header */
   .header { background:#fff; padding:20px 20px 0; border-bottom:1px solid #EEECEA; position:sticky; top:0; z-index:100; }
@@ -42,10 +42,10 @@
   .count strong { color:#1a1a1a; }
 
   /* Grid */
-  .grid { padding:0 16px 32px; display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .grid { padding:0 16px 32px; display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; }
   .card { background:#fff; border-radius:18px; overflow:hidden; cursor:pointer; box-shadow:0 1px 8px rgba(0,0,0,0.06); border:1px solid #EEECEA; transition:transform 0.15s,box-shadow 0.15s; }
   .card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.1); }
-  .card-img { height:110px; background:#F7F6F2; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+  .card-img { height:140px; background:#F7F6F2; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
   .card-img img { width:100%; height:100%; object-fit:cover; }
   .card-emoji { font-size:48px; }
   .card-tag { position:absolute; top:8px; left:8px; font-size:9px; font-weight:800; padding:3px 8px; border-radius:20px; letter-spacing:1px; }
@@ -652,6 +652,13 @@ async function submitForm() {
 }
 
 init();
+
+// 電腦上滑鼠滾輪橫向捲動 tabs
+document.querySelectorAll('.tabs, .regions').forEach(function(el) {
+  el.addEventListener('wheel', function(e) {
+    if (e.deltaY !== 0) { e.preventDefault(); el.scrollLeft += e.deltaY; }
+  }, { passive: false });
+});
 </script>
 </body>
 </html>
